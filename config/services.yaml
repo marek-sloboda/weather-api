@@ -22,3 +22,18 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    Apixu\ApixuInterface:
+        factory: ['Apixu\Factory', create]
+        arguments: ['%env(APIXUKEY)%']
+
+    App\Service\RapidApiWeatherService:
+        arguments:
+            $apiKey: '%env(RAPIDAPIKEY)%'
+    App\Service\OpenWeatherMapService:
+        arguments:
+            $apiKey: '%env(OWMAPIKEY)%'
+
+    App\DataPersister\LocationWeatherDataPersister:
+        decorates: 'api_platform.doctrine.orm.data_persister'
+        decoration_priority: 0
