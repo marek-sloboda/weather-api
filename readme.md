@@ -29,8 +29,8 @@ Swagger documentation is ready, just go to api webbrowser and provide localhost/
 
 ``` json
 {
-    "country": "string",
-    "locality": "string"
+    "country": "pl",
+    "locality": "Szczecin"
 }
 ```
 in return You will get {id} of location resource
