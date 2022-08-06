@@ -90,4 +90,23 @@ class Weather
     {
         $this->avgTemperature = $avgTemperature;
     }
+
+    public function __serialize(): array
+    {
+        return [
+            'id' => $this->getId(),
+            'temperature1' => $this->getTemperature1(),
+            'temperature2' => $this->getTemperature2(),
+            'avgTemperature' => $this->getAvgTemperature(),
+            ];
+    }
+
+    public function __unserialize(array $data): void
+    {
+        $this->id = $data['id'];
+        $this->location = $data['location'];
+        $this->temperature1 = $data['temperature1'];
+        $this->temperature2 = $data['temperature2'];
+        $this->avgTemperature = $data['avgTemperature'];
+    }
 }

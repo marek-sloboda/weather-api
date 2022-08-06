@@ -13,13 +13,16 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Service\RapidApiWeatherService;
 use Exception;
 use \Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 final class LocationWeatherDataPersister implements ContextAwareDataPersisterInterface
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly OpenWeatherMapService  $openWeatherMapService,
-        private readonly RapidApiWeatherService $rapidApiWeatherService
+        private readonly RapidApiWeatherService $rapidApiWeatherService,
+        private readonly CacheInterface         $cacheLocation,
     )
     {
     }
@@ -35,33 +38,36 @@ final class LocationWeatherDataPersister implements ContextAwareDataPersisterInt
      */
     public function persist($data, array $context = [])
     {
-        $openWeather = $this->openWeatherMapService->getWeather(['locality' => $data->getLocality(), 'country' => $data->getCountry()]);
+        return $this->cacheLocation->get($data->getLocality(), function (ItemInterface $item) use ($data) {
 
-        $rapidWeather = $this->rapidApiWeatherService->getWeather([
-            'lon' => $openWeather['lon'],
-            'lat' => $openWeather['lat'],
-        ]);
+            $openWeather = $this->openWeatherMapService->getWeather(['locality' => $data->getLocality(), 'country' => $data->getCountry()]);
 
-        if (!$openWeather && !$rapidWeather) {
-            throw new Exception('No Weather data was collected', Response::HTTP_NOT_FOUND);
-        }
+            $rapidWeather = $this->rapidApiWeatherService->getWeather([
+                'lon' => $openWeather['lon'],
+                'lat' => $openWeather['lat'],
+            ]);
 
-        $data->setLat($openWeather['lat']);
-        $data->setLon($openWeather['lon']);
+            if (!$openWeather && !$rapidWeather) {
+                throw new Exception('No Weather data was collected', Response::HTTP_NOT_FOUND);
+            }
 
-        $this->entityManager->persist($data);
+            $data->setLat($openWeather['lat']);
+            $data->setLon($openWeather['lon']);
 
-        $weather = new Weather();
-        $weather->setLocation($data);
-        $weather->setTemperature1($openWeather['temperature']);
-        $weather->setTemperature2($rapidWeather['temperature']);
-        $weather->setAvgTemperature($this->countAvgTemp($openWeather['temperature'],$rapidWeather['temperature']));
+            $this->entityManager->persist($data);
 
-        $this->entityManager->persist($weather);
+            $weather = new Weather();
+            $weather->setLocation($data);
+            $weather->setTemperature1($openWeather['temperature']);
+            $weather->setTemperature2($rapidWeather['temperature']);
+            $weather->setAvgTemperature($this->countAvgTemp($openWeather['temperature'], $rapidWeather['temperature']));
 
-        $this->entityManager->flush();
+            $this->entityManager->persist($weather);
 
-        return $data;
+            $this->entityManager->flush();
+
+            return $data;
+        });
     }
 
     private function countAvgTemp(float $temp1, float $temp2): float

@@ -3,7 +3,7 @@ App takes temperature from two separate WeatherAPI's.
 
 Then counts average temperature for provided location.
 
-TODO: If provided location is in cache, then api request in unecessary - NOT CODED YET (had no time) !, but docker for Redis is avaliable :)
+TODO: If provided location is in cache, then api request in unecessary, same when asking for /api/location{id}/weather
 
 ### Setup
 1) App based on docker:
