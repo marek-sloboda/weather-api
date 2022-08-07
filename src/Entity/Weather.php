@@ -14,7 +14,9 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Entity(repositoryClass: "App\Repository\WeatherRepository")]
 #[ApiResource(
     collectionOperations: [],
-    itemOperations: ['get']
+    itemOperations: ['get'],
+    denormalizationContext: ["groups" => ['weather:input']],
+    normalizationContext: ["groups" => ['weather:output']],
 )]
 class Weather
 {
@@ -23,23 +25,23 @@ class Weather
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['location:output'])]
-    private int $id;
+    #[Groups(['weather:output', 'location:output'])]
+    private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'weather')]
     #[ORM\JoinColumn(nullable: false)]
-    private Location $location;
+    private ?Location $location = null;
 
     #[ORM\Column(type: Types::FLOAT, nullable: true)]
-    #[Groups(['location:output'])]
+    #[Groups(['weather:output', 'location:output'])]
     private ?float $temperature1 = null;
 
     #[ORM\Column(type: Types::FLOAT, nullable: true)]
-    #[Groups(['location:output'])]
+    #[Groups(['weather:output', 'location:output'])]
     private ?float $temperature2 = null;
 
     #[ORM\Column(type: Types::FLOAT, nullable: true)]
-    #[Groups(['location:output'])]
+    #[Groups(['weather:output', 'location:output'])]
     private ?float $avgTemperature = null;
 
     public function getId(): ?int
@@ -47,7 +49,7 @@ class Weather
         return $this->id;
     }
 
-    public function getLocation(): Location
+    public function getLocation(): ?Location
     {
         return $this->location;
     }
@@ -104,7 +106,6 @@ class Weather
     public function __unserialize(array $data): void
     {
         $this->id = $data['id'];
-        $this->location = $data['location'];
         $this->temperature1 = $data['temperature1'];
         $this->temperature2 = $data['temperature2'];
         $this->avgTemperature = $data['avgTemperature'];
