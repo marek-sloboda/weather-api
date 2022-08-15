@@ -18,12 +18,20 @@ class WeatherController extends AbstractController
     {
     }
 
-    #[Route('location/{id}/weather', name: 'app_weather')]
-    public function index(string $id): Response
+    #[Route('location/{locality}/weather', name: 'app_weather')]
+    public function index(string $locality): Response
     {
-        /** @var Weather $weather */
-        $weather = $this->weatherService->getWeatherForLocality($id);
-        $location = $this->locationRepository->find($id);
+        $locations = $this->locationRepository->findBy(['locality' => urldecode($locality)]);
+
+        if(empty($locations)){
+            throw $this->createNotFoundException('Not found weather for location');
+        }
+
+        sort($locations);
+        $location = end($locations);
+
+        $weather = $this->weatherService->getWeatherForLocality($location->getId());
+
         return $this->render('weather.html.twig', [
             'weather' => $weather,
             'location' => $location,

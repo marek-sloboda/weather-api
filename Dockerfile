@@ -26,6 +26,7 @@ RUN apt-get update \
     php8.1-zip \
     php8.1-redis \
     php8.1-intl \
+    php8.1-amqp \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

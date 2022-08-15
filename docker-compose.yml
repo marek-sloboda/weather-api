@@ -7,6 +7,7 @@ services:
     depends_on:
       - db
       - redis
+      - queue
     ports:
       - ${HOST_APP_PORT:-80}:8080
     volumes:
@@ -26,3 +27,11 @@ services:
     image: redis:5.0.7
     ports:
       - ${HOST_REDIS_PORT:-6379}:6379
+
+  queue:
+    image: rabbitmq:3.8.3-management
+    ports:
+      - ${DOCKER_HOST_QUEUE_PORT:-15672}:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: ${MESSEGNER_TRANSPORT_USER:-"queue"}
+      RABBITMQ_DEFAULT_PASS: ${MESSEGNER_TRANSPORT_PASSWORD:-"queue"}
